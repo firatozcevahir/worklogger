@@ -1,0 +1,116 @@
+﻿@model IEnumerable<WorkLogger.Models.WorkingLog>
+
+@{
+    ViewData["Title"] = "Index";
+    List<string> workingHoursList = new List<string>();
+    string ProcessWorkingHours(string entrance, string exit)
+    {
+        var entranceArray = entrance.Split(':').Select(Int32.Parse).ToList();
+        var exitArray = exit.Split(':').Select(Int32.Parse).ToList();
+        var resultHour = 0;
+        var resultMinute = 0;
+        //exit time - entrance time
+
+        if(exitArray[0] < entranceArray[0])
+        {
+            return "Err: Entrance is bigger than the exit";
+        }
+        if(entranceArray[1] > exitArray[1])
+        {
+            exitArray[0] -= 1;
+            exitArray[1] += 60;
+            resultMinute = exitArray[1] - entranceArray[1];
+            resultHour = exitArray[0] - entranceArray[0];
+        }
+        else
+        {
+            resultMinute = exitArray[1] - entranceArray[1];
+            resultHour = exitArray[0] - entranceArray[0];
+        }
+
+        return resultHour + "h " + resultMinute + "m ";
+    }
+    string ProcessTotalWorkingHours(List<string> workinghourslist)
+    {
+        var hour = 0;
+        var totalHour = 0;
+        var totalMinute = 0;
+        var minute = 0;
+        foreach (var item in workingHoursList)
+        {
+            var result = item.Split(' ');
+            hour = Convert.ToInt32(result[0].Substring(0,result[0].Length -1));
+            minute = Convert.ToInt32(result[1].Substring(0,result[1].Length -1));
+
+            totalHour += hour;
+            totalMinute += minute;
+            if(totalMinute >= 60)
+            {
+                totalHour += 1;
+                totalMinute = totalMinute % 60;
+            }
+        }
+
+        return totalHour + "h " + totalMinute + "m";
+    }
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EntranceTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ExitTime)
+            </th>
+            <th>Working Hours</th>
+            <th>
+                @Html.DisplayNameFor(model => model.Date)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EntranceTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ExitTime)
+            </td>
+            <td>@{
+                var result = ProcessWorkingHours(item.EntranceTime, item.ExitTime);
+                workingHoursList.Add(result);
+
+                @result;
+                }</td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Date)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="6" align="right">Total Hours : @ProcessTotalWorkingHours(workingHoursList)</td>
+        </tr>
+    </tfoot>
+</table>
