@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<WorkLogger.Models.WorkingLog>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Anasayfa";
     List<string> workingHoursList = new List<string>();
     string ProcessWorkingHours(string entrance, string exit)
     {
@@ -11,11 +11,11 @@
         var resultMinute = 0;
         //exit time - entrance time
 
-        if(exitArray[0] < entranceArray[0])
+        if (exitArray[0] < entranceArray[0])
         {
             return "Err: Entrance is bigger than the exit";
         }
-        if(entranceArray[1] > exitArray[1])
+        if (entranceArray[1] > exitArray[1])
         {
             exitArray[0] -= 1;
             exitArray[1] += 60;
@@ -28,7 +28,7 @@
             resultHour = exitArray[0] - entranceArray[0];
         }
 
-        return resultHour + "h " + resultMinute + "m ";
+        return resultHour + "s " + resultMinute + "d ";
     }
     string ProcessTotalWorkingHours(List<string> workinghourslist)
     {
@@ -39,29 +39,31 @@
         foreach (var item in workingHoursList)
         {
             var result = item.Split(' ');
-            hour = Convert.ToInt32(result[0].Substring(0,result[0].Length -1));
-            minute = Convert.ToInt32(result[1].Substring(0,result[1].Length -1));
+            hour = Convert.ToInt32(result[0].Substring(0, result[0].Length - 1));
+            minute = Convert.ToInt32(result[1].Substring(0, result[1].Length - 1));
 
             totalHour += hour;
             totalMinute += minute;
-            if(totalMinute >= 60)
+            if (totalMinute >= 60)
             {
                 totalHour += 1;
                 totalMinute = totalMinute % 60;
             }
         }
-
-        return totalHour + "h " + totalMinute + "m";
+        if (totalMinute > 0)
+            return totalHour + "s " + totalMinute + "d";
+        else
+            return totalHour + "s";
     }
 }
 
-<h1>Index</h1>
+<h1>İş Logları</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">Yeni Oluştur</a>
 </p>
-<table class="table">
-    <thead>
+<table class="table table-striped">
+    <thead class="thead-dark">
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.Description)
@@ -72,45 +74,78 @@
             <th>
                 @Html.DisplayNameFor(model => model.ExitTime)
             </th>
-            <th>Working Hours</th>
+            <th>Çalışma Saati</th>
             <th>
                 @Html.DisplayNameFor(model => model.Date)
             </th>
-            <th></th>
+            <th>İşlemler</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EntranceTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ExitTime)
-            </td>
-            <td>@{
-                var result = ProcessWorkingHours(item.EntranceTime, item.ExitTime);
-                workingHoursList.Add(result);
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EntranceTime)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ExitTime)
+                </td>
+                <td class="text-light">
+                    <span class="bg-info rounded-pill p-2">
+                        @{
+                            var result = ProcessWorkingHours(item.EntranceTime, item.ExitTime);
+                            workingHoursList.Add(result);
 
-                @result;
-                }</td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Date)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+                            @(result.Split(' ')[1].Substring(0, 1) == "0" ? result.Split(' ')[0] : result)
+                        }
+                    </span>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Date)
+                </td>
+                <td>
+                    <div class="row">
+                        <a class="btn" asp-action="Edit" asp-route-id="@item.Id"><i class="text-success fas fa-pen"></i></a>
+                        <a class="btn" asp-action="Details" asp-route-id="@item.Id"><i class="text-info fas fa-info"></i></a>
+                        <form method="post">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button data-toggle="modal" data-target="#deleteConfirmModal" type="button" data-item-id="@item.Id" data-item-description="@item.Description" class="btn float-left"><i class="text-danger fas fa-trash-alt"></i></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        }
     </tbody>
-    <tfoot>
+    <tfoot class="bg-dark text-light">
         <tr>
-            <td colspan="6" align="right">Total Hours : @ProcessTotalWorkingHours(workingHoursList)</td>
+            <td colspan="6" align="right">Toplam Çalışma Saati : <span class="text-light bg-info p-2 rounded">@ProcessTotalWorkingHours(workingHoursList)</span></td>
         </tr>
     </tfoot>
 </table>
+
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Uyarı</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <span class="font-italic p-2 rounded bg-info text-light" id="spnItemDescription"></span> Öğesini silmek istediğinize emin misiniz?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">İptal</button>
+                <form method="post">
+                    <input type="hidden" name="id" value="" id="hddnItemId" />
+                    <button data-item-id="1" type="submit" class="btn btn-success">Onayla</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

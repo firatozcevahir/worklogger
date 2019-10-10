@@ -1,10 +1,10 @@
 ﻿@model WorkLogger.Models.WorkingLog
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = Model.Description + " - Düzenleniyor";
 }
 
-<h1>Edit</h1>
+<h1>Düzenle</h1>
 
 <h4>WorkingLog</h4>
 <hr />
@@ -41,7 +41,7 @@
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Listeye Dön</a>
 </div>
 
 @section Scripts {

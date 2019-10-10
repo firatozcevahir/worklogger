@@ -21,7 +21,7 @@ namespace WorkLogger.Controllers
         // GET: WorkingLogs
         public async Task<IActionResult> Index()
         {
-            return View(await _context.WorkingLog.ToListAsync());
+            return View(await _context.WorkingLog.OrderBy(wl => wl.Date).ToListAsync());
         }
 
         // GET: WorkingLogs/Details/5
@@ -115,28 +115,10 @@ namespace WorkLogger.Controllers
             return View(workingLog);
         }
 
-        // GET: WorkingLogs/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var workingLog = await _context.WorkingLog
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (workingLog == null)
-            {
-                return NotFound();
-            }
-
-            return View(workingLog);
-        }
-
         // POST: WorkingLogs/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost, ActionName("Index")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var workingLog = await _context.WorkingLog.FindAsync(id);
             _context.WorkingLog.Remove(workingLog);
