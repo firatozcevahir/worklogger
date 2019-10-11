@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Anasayfa";
     List<string> workingHoursList = new List<string>();
+    int totalTimeInMinutes = 0;
     string ProcessWorkingHours(string entrance, string exit)
     {
         var entranceArray = entrance.Split(':').Select(Int32.Parse).ToList();
@@ -30,7 +31,7 @@
 
         return resultHour + "s " + resultMinute + "d ";
     }
-    string ProcessTotalWorkingHours(List<string> workinghourslist)
+    int ProcessTotalWorkingHours(List<string> workinghourslist)
     {
         var hour = 0;
         var totalHour = 0;
@@ -50,17 +51,24 @@
                 totalMinute = totalMinute % 60;
             }
         }
-        if (totalMinute > 0)
-            return totalHour + "s " + totalMinute + "d";
-        else
-            return totalHour + "s";
+        return (totalHour * 60) + totalMinute;
     }
+
+    string ParseTotalWorkingHours(int totalmins)
+    {
+        var hours = totalmins / 60;
+        var minutes = totalmins % 60;
+
+
+        return hours + "s " + minutes + "d";
+    }
+
 }
 
 <h1>İş Logları</h1>
 
 <p>
-    <a asp-action="Create">Yeni Oluştur</a>
+    <a asp-action="Create" class="btn btn-success"><i class="fas fa-plus"></i> Yeni Oluştur</a>
 </p>
 <table class="table table-striped">
     <thead class="thead-dark">
@@ -109,8 +117,8 @@
                 </td>
                 <td>
                     <div class="row">
-                        <a class="btn" asp-action="Edit" asp-route-id="@item.Id"><i class="text-success fas fa-pen"></i></a>
                         <a class="btn" asp-action="Details" asp-route-id="@item.Id"><i class="text-info fas fa-info"></i></a>
+                        <a class="btn" asp-action="Edit" asp-route-id="@item.Id"><i class="text-success fas fa-pen"></i></a>
                         <form method="post">
                             <input type="hidden" name="id" value="@item.Id" />
                             <button data-toggle="modal" data-target="#deleteConfirmModal" type="button" data-item-id="@item.Id" data-item-description="@item.Description" class="btn float-left"><i class="text-danger fas fa-trash-alt"></i></button>
@@ -122,11 +130,35 @@
     </tbody>
     <tfoot class="bg-dark text-light">
         <tr>
-            <td colspan="6" align="right">Toplam Çalışma Saati : <span class="text-light bg-info p-2 rounded">@ProcessTotalWorkingHours(workingHoursList)</span></td>
+            <td colspan="6" align="right">
+                Toplam Çalışma Saati :
+                <span class="text-light bg-info p-2 rounded">
+                    @{totalTimeInMinutes = ProcessTotalWorkingHours(workingHoursList);}
+
+                    @ParseTotalWorkingHours(totalTimeInMinutes)
+                    <br />
+                </span>
+            </td>
         </tr>
     </tfoot>
 </table>
 
+<div class="row">
+    <div class="col-md-12">
+        <h3>İlerleme</h3>
+        <div class="progress" style="height: 25px;">
+            <div class="progress-bar progress-bar-striped bg-info font-weight-bold progress-bar-animated" 
+                 role="progressbar"
+                 style="width:@((totalTimeInMinutes / 60) * 2)%;"
+                 aria-valuenow="10" aria-valuemin="0" aria-valuemax="100">
+                Toplam @ParseTotalWorkingHours(totalTimeInMinutes) (@((totalTimeInMinutes / 60) * 2)%)
+            </div>
+        </div>
+
+        <div class="float-left">0</div>
+        <div class="float-right text-right">50</div>
+    </div>
+</div>
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
